@@ -7,9 +7,13 @@ import (
 	"movies/repository"
 	"movies/router"
 	"movies/usecase"
+	"movies/utils"
 )
 
 func main() {
+	// Load environment variables
+	utils.InitEnvironment()
+
 	// Initialize MySQL database connection
 	db, err := config.InitMysql()
 

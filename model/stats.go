@@ -47,3 +47,7 @@ type UserVotedMovie struct {
 	IsUnlike bool   `json:"is_unlike"` // Whether the user dislikes the movie
 	VotedAt  string `json:"voted_at"`  // Timestamp of the vote
 }
+
+type RequestDuration struct {
+	Duration int `json:"duration"`
+}

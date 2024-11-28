@@ -5,6 +5,7 @@ import (
 	"log"
 	"movies/model"
 	"movies/usecase"
+	"os"
 	"strings"
 	"time"
 
@@ -73,7 +74,7 @@ func (ph *UsersHandler) Register(c *gin.Context) {
 
 func (ph *UsersHandler) Login(c *gin.Context) {
 	var user model.Users
-	var jwtSecret = []byte("your_secret_key") // Securely store this key
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET")) // Securely store this key
 
 	// JWT claims structure
 	type Claims struct {

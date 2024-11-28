@@ -3,6 +3,7 @@ package handler
 import (
 	"log"
 	"movies/middleware"
+	"movies/model"
 	"movies/usecase"
 	"net/http"
 	"strconv"
@@ -162,4 +163,51 @@ func (h *StatsHandler) GetUserVotedMovies(c *gin.Context) {
 
 	// Return the list of voted movies
 	c.JSON(http.StatusOK, gin.H{"voted_movies": votedMovies})
+}
+
+// TraceViewership handles tracking of viewership by watching duration
+func (h *StatsHandler) TraceViewership(c *gin.Context) {
+	// Extract the userID from JWT claims
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Assert claims to the expected type
+	userClaims, ok := claims.(*middleware.Claims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+		return
+	}
+
+	// Retrieve the userID from the claims
+	userID := userClaims.UserID
+
+	// Parse movie_id and duration from the request
+	movieID, err := strconv.Atoi(c.Param("movie_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid movie ID"})
+		return
+	}
+
+	var request model.RequestDuration
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
+		return
+	}
+
+	if request.Duration == 0 {
+		c.JSON(400, gin.H{"error": "Bad request", "message": "field duration required"})
+		return
+	}
+
+	// Call use case to update the viewership duration
+	err = h.StatsUseCase.TraceViewership(userID, movieID, request.Duration)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Viewership duration tracked successfully"})
 }

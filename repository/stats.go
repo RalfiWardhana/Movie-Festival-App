@@ -298,3 +298,24 @@ func (r *StatsRepo) MovieViewExists(userID int, movieID int) (bool, error) {
 	// Return true if there are views recorded for the movie
 	return count > 0, nil
 }
+
+// UpdateViewingDuration updates the viewing duration of a movie for a user
+func (r *StatsRepo) UpdateViewingDuration(userID, movieID, duration int) error {
+	query := `
+		UPDATE movie_views
+		SET duration = duration + ?
+		WHERE user_id = ? AND movie_id = ?
+	`
+
+	result, err := r.DB.Exec(query, duration, userID, movieID)
+	if err != nil {
+		return fmt.Errorf("failed to update viewing duration: %w", err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("no record updated, check movie_id and user_id")
+	}
+
+	return nil
+}

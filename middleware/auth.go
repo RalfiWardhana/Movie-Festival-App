@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ type Claims struct {
 
 // AuthMiddleware authenticates requests using JWT tokens
 func AuthMiddleware() gin.HandlerFunc {
-	var jwtSecret = []byte("your_secret_key") // Secret key for JWT
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET")) // Secret key for JWT
 	return func(c *gin.Context) {
 		// Retrieve the Authorization header
 		tokenString := c.GetHeader("Authorization")

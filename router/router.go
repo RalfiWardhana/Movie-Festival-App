@@ -22,11 +22,12 @@ func Router(MoviesHandler *handler.MoviesHandler, StatsHandler *handler.StatsHan
 
 	// Stats Routes
 	r.POST("/stats/:movie_id/view", middleware.AuthMiddleware(), MoviesHandler.TrackView)                                                     // Authenticated users can track views
-	r.POST("/stats/:movie_id/vote", middleware.AuthMiddleware(), StatsHandler.VoteMovie)                                                      // Authenticated users can vote
-	r.POST("/stats/:movie_id/unvote", middleware.AuthMiddleware(), StatsHandler.UnvoteMovie)                                                  // Authenticated users can unvote
+	r.POST("/stats/:movie_id/vote", middleware.AuthMiddleware(), middleware.RoleMiddleware("user"), StatsHandler.VoteMovie)                   // Authenticated users can vote
+	r.POST("/stats/:movie_id/unvote", middleware.AuthMiddleware(), middleware.RoleMiddleware("user"), StatsHandler.UnvoteMovie)               // Authenticated users can unvote
 	r.GET("/stats/most-viewed-genre-movie", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), StatsHandler.GetMostViewedStats) // Admin can view stats
 	r.GET("/stats/most-voted-genre-movie", middleware.AuthMiddleware(), middleware.RoleMiddleware("admin"), StatsHandler.GetMostVotedStats)
-	r.GET("/user/voted-movies", middleware.AuthMiddleware(), StatsHandler.GetUserVotedMovies) // Authenticated users can view their votes
-
+	r.POST("/stats/:movie_id/trace", middleware.AuthMiddleware(), middleware.RoleMiddleware("user"), StatsHandler.TraceViewership)
+	r.GET("/stats/user/voted-movies", middleware.AuthMiddleware(), StatsHandler.GetUserVotedMovies) // Authenticated users can view their votes
+	middleware.AuthMiddleware()
 	return r
 }

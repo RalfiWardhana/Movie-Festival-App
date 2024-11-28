@@ -176,3 +176,32 @@ func (uc *StatsUseCase) GetUserVotedMovies(userID int) ([]model.UserVotedMovie, 
 	// Return the list of voted movies
 	return votedMovies, nil
 }
+
+// TraceViewership tracks the duration of a movie viewed by a user
+func (uc *StatsUseCase) TraceViewership(userID, movieID, duration int) error {
+	// Validate if the movie exists
+	movieExists, err := uc.StatsRepo.MovieExists(movieID)
+	if err != nil {
+		return fmt.Errorf("failed to validate movie existence: %w", err)
+	}
+	if !movieExists {
+		return fmt.Errorf("movie not found")
+	}
+
+	// Validate if the user has viewed the movie
+	movieViewExists, err := uc.StatsRepo.MovieViewExists(userID, movieID)
+	if err != nil {
+		return fmt.Errorf("failed to validate movie view existence: %w", err)
+	}
+	if !movieViewExists {
+		return fmt.Errorf("user has not viewed this movie")
+	}
+
+	// Update the viewing duration
+	err = uc.StatsRepo.UpdateViewingDuration(userID, movieID, duration)
+	if err != nil {
+		return fmt.Errorf("failed to update viewing duration: %w", err)
+	}
+
+	return nil
+}

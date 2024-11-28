@@ -130,12 +130,12 @@ func (r *MoviesRepo) SearchMovies(title string, description string, artist strin
 // SaveMovieView saves a record of a user viewing a movie in the movie_views table.
 func (r *MoviesRepo) SaveMovieView(view *model.MovieView) error {
 	query := `
-		INSERT INTO movie_views (movie_id, user_id, viewed_at)
-		VALUES (?, ?, ?)
+		INSERT INTO movie_views (movie_id, user_id, viewed_at, duration)
+		VALUES (?, ?, ?, ?)
 	`
 
 	// Execute the insert query with the view data.
-	_, err := r.DB.Exec(query, view.MovieID, view.UserID, view.ViewedAt)
+	_, err := r.DB.Exec(query, view.MovieID, view.UserID, view.ViewedAt, 0)
 	if err != nil {
 		return fmt.Errorf("failed to save movie view: %w", err)
 	}

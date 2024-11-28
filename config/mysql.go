@@ -2,35 +2,42 @@ package config
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
 
-	_ "github.com/go-sql-driver/mysql" // Importing the MySQL driver package
+	_ "github.com/go-sql-driver/mysql" // Import MySQL driver
 )
 
 // InitMysql initializes and returns a connection to the MySQL database
 func InitMysql() (*sql.DB, error) {
-	// Data Source Name (DSN) used to connect to the MySQL database
-	dsn := "ralfi:elyanapunya@tcp(127.0.0.1:3306)/movies?charset=utf8mb4&parseTime=True&loc=Local"
+
+	// Get credentials from environment variables
+	user := os.Getenv("MYSQL_USER")
+	password := os.Getenv("MYSQL_PASSWORD")
+	host := os.Getenv("MYSQL_HOST")
+	port := os.Getenv("MYSQL_PORT")
+	dbName := os.Getenv("MYSQL_DB")
+	params := os.Getenv("MYSQL_PARAMS")
+
+	log.Println("USER : ", user)
+
+	// Construct DSN (Data Source Name)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", user, password, host, port, dbName, params)
 
 	// Open a connection to the MySQL database
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		// If there is an error while opening the database connection, log the error and return nil
-		log.Println("ERR connect to DB : ", err)
+		log.Println("ERR connect to DB:", err)
 		return nil, err
 	}
 
-	// Ping the database to verify the connection
-	err = db.Ping()
-	if err != nil {
-		// If pinging the database fails, log the error and return nil
-		log.Println("ERR connect to DB : ", err)
+	// Test the connection
+	if err = db.Ping(); err != nil {
+		log.Println("ERR ping DB:", err)
 		return nil, err
 	}
 
-	// Log that the database connection was successful
-	log.Println("database connected")
-
-	// Return the established database connection
+	log.Println("Database connected successfully!")
 	return db, nil
 }
