@@ -20,8 +20,6 @@ func InitMysql() (*sql.DB, error) {
 	dbName := os.Getenv("MYSQL_DB")
 	params := os.Getenv("MYSQL_PARAMS")
 
-	log.Println("USER : ", user)
-
 	// Construct DSN (Data Source Name)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", user, password, host, port, dbName, params)
 

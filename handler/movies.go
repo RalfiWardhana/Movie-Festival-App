@@ -146,7 +146,11 @@ func (h *MoviesHandler) Create(c *gin.Context) {
 	// Use the use case layer to save the movie to the database.
 	movieID, err := h.MoviesUsecase.Create(movie)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if strings.Contains(err.Error(), "genre not found") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Genre not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track viewership"})
+		}
 		return
 	}
 
@@ -169,6 +173,7 @@ func (h *MoviesHandler) UpdateMovie(c *gin.Context) {
 
 	// Prepare a map to hold fields to be updated
 	updates := make(map[string]interface{})
+	var genreId int
 
 	// Collect form data for fields like title, description, duration, artist, and genre
 	// Only add non-empty fields to the updates map
@@ -189,7 +194,9 @@ func (h *MoviesHandler) UpdateMovie(c *gin.Context) {
 	if genreIDStr := c.PostForm("genre_id"); genreIDStr != "" {
 		if genreID, err := strconv.Atoi(genreIDStr); err == nil {
 			updates["genre_id"] = genreID
+			genreId = genreID
 		}
+
 	}
 
 	// Handle file upload: validate size, type, and save the file
@@ -258,9 +265,15 @@ func (h *MoviesHandler) UpdateMovie(c *gin.Context) {
 	}
 
 	// Perform the update using the MoviesUsecase and handle any errors
-	err = h.MoviesUsecase.Update(movieID, updates)
+	err = h.MoviesUsecase.Update(movieID, genreId, updates)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if strings.Contains(err.Error(), "genre not found") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Genre not found"})
+		} else if strings.Contains(err.Error(), "movie not found") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track viewership"})
+		}
 		return
 	}
 
@@ -301,6 +314,7 @@ func (h *MoviesHandler) GetAllMoviesWithPagination(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":   200,
 		"messages": "Success to get Movies",
+		"data":     len(movies),
 		"movies":   movies,
 	})
 }

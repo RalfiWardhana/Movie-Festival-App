@@ -181,3 +181,22 @@ func (r *MoviesRepo) MovieExists(movieID int) (bool, error) {
 	// Return true if the movie exists, else false.
 	return count > 0, nil
 }
+
+// GenreExists checks if a movie with the given ID exists in the database.
+func (r *MoviesRepo) GenreExists(genreID int) (bool, error) {
+	query := `
+		SELECT COUNT(1)
+		FROM genres
+		WHERE id = ?
+	`
+
+	// Execute the query and check if the movie exists.
+	var count int
+	err := r.DB.QueryRow(query, genreID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check genre existence: %w", err)
+	}
+
+	// Return true if the movie exists, else false.
+	return count > 0, nil
+}
