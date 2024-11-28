@@ -205,3 +205,34 @@ func (uc *StatsUseCase) TraceViewership(userID, movieID, duration int) error {
 
 	return nil
 }
+
+// TrackMovieView saves the viewership record into the database
+func (uc *StatsUseCase) TrackMovieView(view *model.MovieView) (bool, error) {
+	// Check movies
+	movieExists, err := uc.StatsRepo.MovieExists(view.MovieID) // Checks if movie exists
+	if err != nil {
+		return false, fmt.Errorf("failed to validate movie existence: %w", err)
+	}
+	if !movieExists {
+		return false, fmt.Errorf("movie not found") // Returns error if movie doesn't exist
+	}
+
+	// Check if user has already viewed the movie
+	hasViewed, err := uc.StatsRepo.HasViewed(view.MovieID, view.UserID) // Checks if user has viewed the movie
+	if err != nil {
+		return false, err
+	}
+
+	// If user has already viewed, return true
+	if hasViewed {
+		return true, nil
+	}
+
+	// Save the new view record to database
+	err = uc.StatsRepo.SaveMovieView(view) // Calls repository to save view
+	if err != nil {
+		return false, err
+	}
+
+	return false, nil
+}

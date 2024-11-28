@@ -319,3 +319,39 @@ func (r *StatsRepo) UpdateViewingDuration(userID, movieID, duration int) error {
 
 	return nil
 }
+
+// SaveMovieView saves a record of a user viewing a movie in the movie_views table.
+func (r *StatsRepo) SaveMovieView(view *model.MovieView) error {
+	query := `
+		INSERT INTO movie_views (movie_id, user_id, viewed_at, duration)
+		VALUES (?, ?, ?, ?)
+	`
+
+	// Execute the insert query with the view data.
+	_, err := r.DB.Exec(query, view.MovieID, view.UserID, view.ViewedAt, 0)
+	if err != nil {
+		return fmt.Errorf("failed to save movie view: %w", err)
+	}
+
+	// Return nil if successful.
+	return nil
+}
+
+// HasViewed checks if a user has already viewed a movie.
+func (r *StatsRepo) HasViewed(movieID int, userID int) (bool, error) {
+	query := `
+		SELECT COUNT(1) 
+		FROM movie_views 
+		WHERE movie_id = ? AND user_id = ?
+	`
+
+	// Execute the query and check the count.
+	var count int
+	err := r.DB.QueryRow(query, movieID, userID).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check view status: %w", err)
+	}
+
+	// Return true if the user has viewed the movie, else false.
+	return count > 0, nil
+}

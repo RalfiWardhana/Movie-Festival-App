@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -210,4 +211,61 @@ func (h *StatsHandler) TraceViewership(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Viewership duration tracked successfully"})
+}
+
+// TrackView tracks the view of a movie, with userID taken from the JWT token
+func (h *StatsHandler) TrackView(c *gin.Context) {
+	// Extract the movie_id from the URL parameters
+	movieIDStr := c.Param("movie_id")
+	movieID, err := strconv.Atoi(movieIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid movie ID"})
+		return
+	}
+
+	// Extract the userID from JWT claims
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Assert claims to the expected type
+	userClaims, ok := claims.(*middleware.Claims)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+		return
+	}
+
+	// Retrieve the userID from the claims
+	userID := userClaims.UserID
+
+	// Create the MovieView record with the current timestamp
+	movieView := &model.MovieView{
+		MovieID:  movieID,
+		UserID:   userID,
+		ViewedAt: time.Now().Format(time.RFC3339),
+	}
+
+	log.Println("Movie View: ", movieView)
+
+	// Call the usecase to check and save view data
+	hasViewed, err := h.StatsUseCase.TrackMovieView(movieView)
+	if err != nil {
+		if strings.Contains(err.Error(), "movie not found") {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track viewership"})
+		}
+		return
+	}
+
+	// Respond with a message if the user has already viewed the movie
+	if hasViewed {
+		c.JSON(http.StatusOK, gin.H{"message": "User has already viewed this movie"})
+		return
+	}
+
+	// Respond with a success message for new views
+	c.JSON(http.StatusOK, gin.H{"message": "Viewership tracked successfully"})
 }
