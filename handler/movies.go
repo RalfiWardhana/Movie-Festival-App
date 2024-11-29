@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"movies/model"
 	"movies/usecase"
 	"net/http"
@@ -196,6 +197,8 @@ func (h *MoviesHandler) UpdateMovie(c *gin.Context) {
 		}
 
 	}
+
+	log.Println("genre id : ", genreId)
 
 	// Handle file upload: validate size, type, and save the file
 	// Update the movie's watch_url with the saved file path

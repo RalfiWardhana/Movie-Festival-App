@@ -84,7 +84,7 @@ func (h *StatsHandler) VoteMovie(c *gin.Context) {
 		if strings.Contains(err.Error(), "movie not found") {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
 		} else if strings.Contains(err.Error(), "movie has not been viewed") {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Movie has not been viewed"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Movie has not been viewed"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track viewership"})
 		}
@@ -125,7 +125,7 @@ func (h *StatsHandler) UnvoteMovie(c *gin.Context) {
 		if strings.Contains(err.Error(), "movie not found") {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
 		} else if strings.Contains(err.Error(), "movie has not been viewed") {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Movie has not been viewed"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Movie has not been viewed"})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to track viewership"})
 		}

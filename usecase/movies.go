@@ -31,12 +31,14 @@ func (uc *MoviesUseCase) Create(Movie *model.Movies) (*model.Movies, error) {
 // Update updates an existing movie using the repository method.
 func (uc *MoviesUseCase) Update(movieID int, genreID int, updates map[string]interface{}) error {
 	// Check genres
-	genreExists, err := uc.MoviesRepo.GenreExists(genreID) // Checks if genre exists
-	if err != nil {
-		return fmt.Errorf("failed to validate genre existence: %w", err)
-	}
-	if !genreExists {
-		return fmt.Errorf("genre not found") // Returns error if genre doesn't exist
+	if genreID != 0 {
+		genreExists, err := uc.MoviesRepo.GenreExists(genreID) // Checks if genre exists
+		if err != nil {
+			return fmt.Errorf("failed to validate genre existence: %w", err)
+		}
+		if !genreExists {
+			return fmt.Errorf("genre not found") // Returns error if genre doesn't exist
+		}
 	}
 
 	// Check movies
